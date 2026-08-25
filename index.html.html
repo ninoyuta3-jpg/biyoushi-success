@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>美容師サクセス v0.2</title>
+<style>
+body{margin:0;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;color:#111}
+.app{max-width:760px;margin:auto;padding:18px 14px 40px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:13px;color:#6b7280}
+input,select,button{width:100%;font:inherit;padding:11px 12px;border-radius:11px;border:1px solid #d1d5db;background:#fff}
+button{background:#111827;color:#fff;font-weight:700;border:0;margin-top:12px}
+.notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:12px;font-size:13px;margin:12px 0}
+.hidden{display:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fafafa}
+.stat b{font-size:22px}
+.cmds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmds button{margin:0;min-height:66px}
+.log{font-size:14px;line-height:1.5}
+.small{font-size:12px;color:#6b7280}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>美容師サクセス <small style="font-size:14px">v0.2</small></h1>
+<p class="small">アシスタントから育ててJr.スタイリストデビューを目指せ。</p>
+
+<noscript><div class="notice">この表示ではJavaScriptが無効です。ChatGPT/iPhoneのファイルプレビューではゲーム操作が動かない場合があります。</div></noscript>
+
+<div id="create" class="card">
+<h2>キャラ作成</h2>
+<div class="grid">
+<div><label>名前</label><input id="name" value="YU"></div>
+<div><label>性別</label><select id="gender"><option>男性</option><option>女性</option></select></div>
+<div><label>初期タイプ</label>
+<select id="type">
+<option>天才肌</option><option>接客型</option><option>努力家</option>
+<option>SNS型</option><option>職人気質</option><option>バランス型</option>
+</select></div>
+<div><label>所属サロン</label>
+<select id="salon">
+<option>大型有名サロン</option><option>地域密着サロン</option>
+<option>個人店</option><option>SNS特化サロン</option>
+</select></div>
+</div>
+<button id="start">美容師人生を始める</button>
+<div id="jscheck" class="notice">タイプとサロンが表示されていればOK。下のボタンを押して反応しなければ、このファイルプレビューではJavaScriptが止められています。</div>
+</div>
+
+<div id="game" class="hidden">
+<div class="card"><h2 id="title"></h2><div id="meta" class="small"></div></div>
+<div class="card"><div id="stats" class="stats"></div></div>
+<div class="card">
+<h2>今週、何をする？</h2>
+<div class="cmds">
+<button data-cmd="cut">カット練習</button>
+<button data-cmd="color">カラー練習</button>
+<button data-cmd="perm">パーマ練習</button>
+<button data-cmd="service">接客練習</button>
+<button data-cmd="sns">SNS投稿</button>
+<button data-cmd="rest">休む</button>
+</div>
+</div>
+<div class="card"><h2>ログ</h2><div id="log" class="log"></div></div>
+</div>
+</div>
+<script>
+const bases={
+"天才肌":[56,42,28,18,67,34,31,43],
+"接客型":[31,35,28,63,43,38,44,58],
+"努力家":[37,38,36,39,40,33,49,50],
+"SNS型":[28,42,24,46,58,68,33,34],
+"職人気質":[53,50,45,20,46,18,43,48],
+"バランス型":[41,42,39,42,44,38,43,43]
+};
+const names=["カット","カラー","パーマ","接客","センス","SNS","体力","メンタル"];
+let p=null,week=1;
+function rank(v){if(v>=95)return"S";if(v>=80)return"A";if(v>=70)return"B";if(v>=60)return"C";if(v>=50)return"D";if(v>=40)return"E";if(v>=20)return"F";return"G"}
+function render(){
+ document.getElementById("title").textContent=`${p.name} / アシスタント　${week}週目`;
+ document.getElementById("meta").textContent=`${p.gender}・${p.type}｜${p.salon}`;
+ const s=document.getElementById("stats");s.innerHTML="";
+ p.stats.forEach((v,i)=>{const d=document.createElement("div");d.className="stat";d.innerHTML=`<div class="small">${names[i]}</div><b>${v} ${rank(v)}</b>`;s.appendChild(d)})
+}
+document.getElementById("start").onclick=()=>{
+ p={name:document.getElementById("name").value||"NO NAME",gender:document.getElementById("gender").value,type:document.getElementById("type").value,salon:document.getElementById("salon").value,stats:[...bases[document.getElementById("type").value]]};
+ document.getElementById("create").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ document.getElementById("log").innerHTML="<p>美容師人生が始まった！</p>";
+ render();
+};
+document.querySelectorAll("[data-cmd]").forEach(b=>b.onclick=()=>{
+ const c=b.dataset.cmd, map={cut:0,color:1,perm:2,service:3,sns:5};
+ if(c==="rest"){p.stats[6]=Math.min(100,p.stats[6]+8);document.getElementById("log").innerHTML="<p>しっかり休んだ。</p>"+document.getElementById("log").innerHTML}
+ else{let i=map[c];p.stats[i]=Math.min(100,p.stats[i]+Math.floor(Math.random()*3)+1);document.getElementById("log").innerHTML=`<p>${b.textContent}をした。</p>`+document.getElementById("log").innerHTML}
+ week++;render();
+});
+document.getElementById("jscheck").style.display="none";
+</script>
+</body>
+</html>
